@@ -4,26 +4,49 @@ import model.TransactionRequest;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class JobcoinClient {
 
-    public AddressInfo getAddressInfo(String address) {
-        Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client
-                .target("http://jobcoin.gemini.com/professed-exploit/api/addresses/{address}")
-                .resolveTemplate("address", address);
+    private final Logger logger = Logger.getLogger("JobcoinClient");
+    Client client;
 
-        Invocation.Builder invocationBuilder
-                = webTarget.request(MediaType.APPLICATION_JSON);
+    JobcoinClient(Client client) {
+        this.client = client;
+    }
 
-        AddressInfo addressInfo
-                = invocationBuilder.get(AddressInfo.class);
+    public AddressInfo getAddressInfo(String address) throws ClientException {
+        AddressInfo addressInfo;
+        try {
+            WebTarget webTarget = client
+                    .target("http://jobcoin.gemini.com/professed-exploit/api/addresses/{address}")
+                    .resolveTemplate("address", address);
+
+            Invocation.Builder invocationBuilder
+                    = webTarget.request(MediaType.APPLICATION_JSON);
+
+            Response response = invocationBuilder.get();
+            response.bufferEntity();
+            if (!response.getStatusInfo().getFamily().equals(SUCCESSFUL)) {
+                logger.log(Level.INFO, "API call returned unsuccessful status: " + response.getStatus());
+                throw new ClientException();
+            }
+            addressInfo = invocationBuilder.get(AddressInfo.class);
+        } catch (ClientException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.log(Level.INFO, e.getMessage());
+            throw new ClientException();
+        }
 
         return addressInfo;
     }
 
     public void createTransaction(TransactionRequest transactionRequest) {
-        Client client = ClientBuilder.newClient();
         WebTarget webTarget = client
                 .target("http://jobcoin.gemini.com/professed-exploit/api/transactions");
 

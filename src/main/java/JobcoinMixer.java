@@ -1,6 +1,7 @@
 import model.AddressInfo;
 import model.TransactionRequest;
 
+import javax.ws.rs.client.ClientBuilder;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public class JobcoinMixer {
 
     private static String houseAddress = "House";
 
-    private static JobcoinClient jobcoinClient = new JobcoinClient();
+    private static JobcoinClient jobcoinClient = new JobcoinClient(ClientBuilder.newClient());
 
     public static void main(String[] args) {
 
@@ -46,10 +47,12 @@ public class JobcoinMixer {
             }
         } catch (CompletedException completedException) {
             System.out.println("Quitting...");
+        } catch (ClientException clientException) {
+            System.out.println("There was an error with an API call, terminating the program");
         }
     }
 
-    private static void mix(String depositAddress, List<String> addresses) {
+    private static void mix(String depositAddress, List<String> addresses) throws ClientException {
         boolean isTransferredToDepositAddress = false;
         long startTime = System.currentTimeMillis();
         while (!isTransferredToDepositAddress && (System.currentTimeMillis() - startTime < 30000)) {
