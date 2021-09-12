@@ -1,6 +1,7 @@
 package client;
 
 import model.AddressInfo;
+import model.TransactionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -49,7 +50,7 @@ public class JobcoinClientTest {
         when(statusType.getFamily()).thenReturn(Response.Status.Family.SUCCESSFUL);
         AddressInfo addressInfo = new AddressInfo();
         addressInfo.setBalance("10");
-        when(invocationBuilder.get(AddressInfo.class)).thenReturn(addressInfo);
+        when(response.readEntity(AddressInfo.class)).thenReturn(addressInfo);
 
         AddressInfo addressInfoResponse = jobcoinClient.getAddressInfo("address1");
         assertNotNull(addressInfoResponse);
@@ -57,16 +58,69 @@ public class JobcoinClientTest {
     }
 
     @Test
-    public void testGetAddressInfo_unsuccessfulResponse() throws ClientException {
+    public void testGetAddressInfo_unsuccessfulResponse(){
         when(client.target(anyString())).thenReturn(webTarget);
         when(webTarget.resolveTemplate(anyString(), any())).thenReturn(webTarget);
         when(webTarget.request(anyString())).thenReturn(invocationBuilder);
         when(invocationBuilder.get()).thenReturn(response);
         when(response.getStatusInfo()).thenReturn(statusType);
         when(statusType.getFamily()).thenReturn(Response.Status.Family.SERVER_ERROR);
-        AddressInfo addressInfo = new AddressInfo();
-        addressInfo.setBalance("10");
 
         assertThrows(ClientException.class, () -> jobcoinClient.getAddressInfo("address1"));
+    }
+
+    @Test
+    public void testGetAddressInfo_exceptionOnParsingResponse() {
+        when(client.target(anyString())).thenReturn(webTarget);
+        when(webTarget.resolveTemplate(anyString(), any())).thenReturn(webTarget);
+        when(webTarget.request(anyString())).thenReturn(invocationBuilder);
+        when(invocationBuilder.get()).thenReturn(response);
+        when(response.getStatusInfo()).thenReturn(statusType);
+        when(statusType.getFamily()).thenReturn(Response.Status.Family.SUCCESSFUL);
+        when(response.readEntity(AddressInfo.class)).thenThrow(new RuntimeException());
+
+        assertThrows(ClientException.class, () -> jobcoinClient.getAddressInfo("address1"));
+    }
+
+    @Test
+    public void testCreateTransaction_successfulResponse() throws ClientException {
+        when(client.target(anyString())).thenReturn(webTarget);
+        when(webTarget.resolveTemplate(anyString(), any())).thenReturn(webTarget);
+        when(webTarget.request(anyString())).thenReturn(invocationBuilder);
+        when(response.getStatusInfo()).thenReturn(statusType);
+        when(statusType.getFamily()).thenReturn(Response.Status.Family.SUCCESSFUL);
+        AddressInfo addressInfo = new AddressInfo();
+        addressInfo.setBalance("10");
+        when(invocationBuilder.post(any())).thenReturn(response);
+
+        jobcoinClient.createTransaction(new TransactionRequest());
+    }
+
+    @Test
+    public void testCreateTransaction_unsuccessfulResponse() {
+        when(client.target(anyString())).thenReturn(webTarget);
+        when(webTarget.resolveTemplate(anyString(), any())).thenReturn(webTarget);
+        when(webTarget.request(anyString())).thenReturn(invocationBuilder);
+        when(response.getStatusInfo()).thenReturn(statusType);
+        when(statusType.getFamily()).thenReturn(Response.Status.Family.CLIENT_ERROR);
+        AddressInfo addressInfo = new AddressInfo();
+        addressInfo.setBalance("10");
+        when(invocationBuilder.post(any())).thenReturn(response);
+
+        assertThrows(ClientException.class, () -> jobcoinClient.createTransaction(new TransactionRequest()));
+    }
+
+    @Test
+    public void testCreateTransaction_runtimeException() {
+        when(client.target(anyString())).thenReturn(webTarget);
+        when(webTarget.resolveTemplate(anyString(), any())).thenReturn(webTarget);
+        when(webTarget.request(anyString())).thenReturn(invocationBuilder);
+        when(response.getStatusInfo()).thenReturn(statusType);
+        when(statusType.getFamily()).thenReturn(Response.Status.Family.CLIENT_ERROR);
+        AddressInfo addressInfo = new AddressInfo();
+        addressInfo.setBalance("10");
+        when(invocationBuilder.post(any())).thenThrow(new RuntimeException());
+
+        assertThrows(ClientException.class, () -> jobcoinClient.createTransaction(new TransactionRequest()));
     }
 }

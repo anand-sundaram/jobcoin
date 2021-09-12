@@ -1,14 +1,19 @@
+package calculator;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
 public class AmountDistributionCalculator {
 
-    private static final AmountDistributionMode AMOUNT_DISTRIBUTION_MODE = AmountDistributionMode.RANDOM;
-
     public static Map<String, BigDecimal> getAmountDistributionMap(BigDecimal amount, List<String> addresses) {
+        return getAmountDistributionMap(amount, addresses, AmountDistributionMode.UNIFORM);
+    }
+
+    public static Map<String, BigDecimal> getAmountDistributionMap(BigDecimal amount, List<String> addresses,
+                                                                   AmountDistributionMode amountDistributionMode) {
         Map<String, BigDecimal> amountDistribution = new HashMap<>();
-        if (AMOUNT_DISTRIBUTION_MODE.equals(AmountDistributionMode.RANDOM)) {
+        if (amountDistributionMode.equals(AmountDistributionMode.RANDOM)) {
             Random random = new Random();
             for (int x = 0; x < addresses.size(); x++) {
                 if (x == addresses.size() - 1) {
@@ -34,9 +39,4 @@ public class AmountDistributionCalculator {
 
         return amountDistribution;
     }
-}
-
-enum AmountDistributionMode {
-    UNIFORM,
-    RANDOM
 }

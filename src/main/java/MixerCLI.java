@@ -1,3 +1,6 @@
+import client.JobcoinClient;
+
+import javax.ws.rs.client.ClientBuilder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -18,8 +21,9 @@ public class MixerCLI {
         Scanner sc = new Scanner(System.in);
 
         TransactionManagerImpl transactionManager = new TransactionManagerImpl();
+        JobcoinClient jobcoinClient = new JobcoinClient(ClientBuilder.newClient());
         Mixer mixer = new Mixer(transactionManager);
-        transactionManager.setTransactionNotificationDelegate(mixer);
+        transactionManager.setup(mixer, jobcoinClient);
 
         try {
             while (true) {

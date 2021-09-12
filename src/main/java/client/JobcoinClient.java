@@ -1,10 +1,12 @@
 package client;
 
 import model.AddressInfo;
-import model.SuccessResponse;
 import model.TransactionRequest;
 
-import javax.ws.rs.client.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.logging.Level;
@@ -37,7 +39,7 @@ public class JobcoinClient {
                 logger.log(Level.INFO, "API call returned unsuccessful status: " + response.getStatus());
                 throw new ClientException();
             }
-            addressInfo = invocationBuilder.get(AddressInfo.class);
+            addressInfo = response.readEntity(AddressInfo.class);
         } catch (ClientException e) {
             throw e;
         } catch (Exception e) {
@@ -62,7 +64,6 @@ public class JobcoinClient {
                 logger.log(Level.INFO, "API call returned unsuccessful status: " + response.getStatus());
                 throw new ClientException();
             }
-            SuccessResponse successResponse = response.readEntity(SuccessResponse.class);
         } catch (ClientException e) {
             throw e;
         } catch (Exception e) {

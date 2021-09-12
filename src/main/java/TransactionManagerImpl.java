@@ -12,12 +12,13 @@ public class TransactionManagerImpl implements TransactionManager {
 
     private final Logger logger = Logger.getLogger("TransactionManagerImpl");
 
-    private final JobcoinClient jobcoinClient = new JobcoinClient(ClientBuilder.newClient());
+    private JobcoinClient jobcoinClient = new JobcoinClient(ClientBuilder.newClient());
 
     private TransactionNotificationDelegate transactionNotificationDelegate;
 
-    public void setTransactionNotificationDelegate(TransactionNotificationDelegate transactionNotificationDelegate) {
+    public void setup(TransactionNotificationDelegate transactionNotificationDelegate, JobcoinClient jobcoinClient) {
         this.transactionNotificationDelegate = transactionNotificationDelegate;
+        this.jobcoinClient = jobcoinClient;
     }
 
     @Override
@@ -29,6 +30,7 @@ public class TransactionManagerImpl implements TransactionManager {
         try {
             jobcoinClient.createTransaction(transactionRequest);
         } catch (ClientException e) {
+            // TODO: Introduce retry logic for failed transaction
             logger.log(Level.SEVERE, "Failed to perform a transaction, this transaction will be skipped");
         }
 
@@ -37,19 +39,19 @@ public class TransactionManagerImpl implements TransactionManager {
     @Override
     public void listenForAddress(String address) {
         long startTime = System.currentTimeMillis();
-        while ((System.currentTimeMillis() - startTime < 30000)) {
-            AddressInfo addressInfo = null;
-            try {
-                addressInfo = jobcoinClient.getAddressInfo(address);
+        try {
+            while ((System.currentTimeMillis() - startTime < 30000)) {
+                AddressInfo addressInfo = jobcoinClient.getAddressInfo(address);
                 BigDecimal balance = new BigDecimal(addressInfo.getBalance());
                 if (!balance.equals(BigDecimal.ZERO)) {
                     // TODO: null check on transactionNotificationDelegate
                     transactionNotificationDelegate.onTransactionEvent(balance, address);
                     break;
                 }
-            } catch (ClientException e) {
-                logger.log(Level.WARNING, e.getMessage());
             }
+        } catch (ClientException e) {
+            // TODO: introduce retry instead of giving up after first error from service
+            logger.log(Level.WARNING, e.getMessage());
         }
     }
 }
