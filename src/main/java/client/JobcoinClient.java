@@ -1,3 +1,5 @@
+package client;
+
 import model.AddressInfo;
 import model.SuccessResponse;
 import model.TransactionRequest;
@@ -12,10 +14,10 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class JobcoinClient {
 
-    private final Logger logger = Logger.getLogger("JobcoinClient");
+    private final Logger logger = Logger.getLogger("client.JobcoinClient");
     Client client;
 
-    JobcoinClient(Client client) {
+    public JobcoinClient(Client client) {
         this.client = client;
     }
 
@@ -46,15 +48,26 @@ public class JobcoinClient {
         return addressInfo;
     }
 
-    public void createTransaction(TransactionRequest transactionRequest) {
-        WebTarget webTarget = client
-                .target("http://jobcoin.gemini.com/professed-exploit/api/transactions");
+    public void createTransaction(TransactionRequest transactionRequest) throws ClientException {
+        try {
+            WebTarget webTarget = client
+                    .target("http://jobcoin.gemini.com/professed-exploit/api/transactions");
 
-        Invocation.Builder invocationBuilder
-                = webTarget.request(MediaType.APPLICATION_JSON);
+            Invocation.Builder invocationBuilder
+                    = webTarget.request(MediaType.APPLICATION_JSON);
 
-        SuccessResponse successResponse = invocationBuilder
-                .post(Entity.entity(transactionRequest, MediaType.APPLICATION_JSON))
-                .readEntity(SuccessResponse.class);
+            Response response = invocationBuilder
+                    .post(Entity.entity(transactionRequest, MediaType.APPLICATION_JSON));
+            if (!response.getStatusInfo().getFamily().equals(SUCCESSFUL)) {
+                logger.log(Level.INFO, "API call returned unsuccessful status: " + response.getStatus());
+                throw new ClientException();
+            }
+            SuccessResponse successResponse = response.readEntity(SuccessResponse.class);
+        } catch (ClientException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.log(Level.INFO, e.getMessage());
+            throw new ClientException();
+        }
     }
 }
