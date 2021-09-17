@@ -9,12 +9,12 @@ public class MixerCLI {
 
     private static String prompt = "Please enter a comma-separated list of new, unused Jobcoin addresses where your mixed Jobcoins will be sent.";
 
-    private static String helpText = "Jobcoin Mixer\n" +
+    private static String helpText = "---------------------------------------------------\n" +
+            "Jobcoin Mixer\n" +
             "\n" +
             "Takes in at least one return address as parameters (where to send coins after mixing). Returns a deposit address to send coins to.\n" +
             "\n" +
-            "Usage:\n" +
-            "    run return_addresses...";
+            "To exit the program, just type in \"quit\":\n";
 
     public static void main(String[] args) {
 
@@ -39,7 +39,7 @@ public class MixerCLI {
                 List<String> addresses = Arrays.asList(line.split(","));
                 String depositAddress = mixer.createDepositAddress(addresses);
                 System.out.printf("You may now send Jobcoins to address %s. They will be mixed and sent to your destination addresses.%n", depositAddress);
-                // add validation for number of addresses
+                //TODO: add validation for number of addresses
             }
         } catch (CompletedException completedException) {
             System.out.println("Quitting...");
