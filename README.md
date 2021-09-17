@@ -71,7 +71,7 @@ The `Mixer` and `TransactionManagerImpl` don't directly depend on each other, th
 - Use Lombok for getters/setters in POJOs so that the model code is less verbose
 - Move the end-to-end test (`MixerE2eTest`) to a separate module instead of clubbing it with unit tests
 - Move constants such as api endpoints, house address, fee percentage, amount distribution type and transaction timeout to config
-- Better input validation
+- Better input validation (for example when the `Mixer` is notified of a transaction event, it should verify the transaction details instead of blindly trusting the client)
 
 
 #### Long-term Improvements:
